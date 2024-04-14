@@ -26,16 +26,31 @@ int grid[9][10] = {
     { 1, 1, 1, 0, 0, 0, 1, 0, 0, 1 }
 };
 
-int IsValid(struct cell cell)
+int min_index(struct cell *open, int open_size)
+{
+    int index = 0;
+
+    for (int i; i < open_size; i++)
+    {
+        if (open[i].f < open[index].f)
+        {
+            index = i;
+        }
+    }
+
+    return index;
+}
+
+int IsValid(int x, int y)
 {
     // Check for out of range values
-    return (0 <= cell.x) && (cell.x < 10) && (0 <= cell.y) && (cell.y < 9);
+    return (0 <= x) && (x < 10) && (0 <= y) && (y < 9);
 };
 
-int IsUnblocked(struct cell cell)
+int IsUnblocked(int x, int y)
 {
     // 1 means unblocked and 0 means blocked
-    return grid[cell.y][cell.x];
+    return grid[y][x];
 };
 
 int g(struct cell cell)
@@ -54,7 +69,12 @@ float h(struct cell cell, struct cell dst)
 float f(struct cell cell, struct cell dst)
 {
     // Value of cell
-    return g(cell) + h(cell, dst);
+    if (cell.g)
+    {
+        return cell.g + h(cell, dst);
+    } else {
+        return g(cell) + h(cell, dst);
+    }
 };
 
 struct cell *trace_path(struct cell cell)
@@ -80,21 +100,74 @@ struct cell *trace_path(struct cell cell)
         i++;
     }
 
-    return path;
+    printf("(%i, %i)", path[0].x, path[0].y);
+    for (int i = 1; i < cells; i++)
+    {
+        printf("->(%i, %i)", path[i].x, path[i].y);
+    }
 
+    printf("\n");
 };
 
-void search(struct cell *open, struct cell *closed, struct cell src, struct cell dst)
+int check_dst(struct cell *open, int open_size, struct cell dst)
 {
-    // Calculate f values of neighbours and adds the cell to the closed list
-};
+    // Check if the dst cell is in the open list
+    int index = -1;
 
-int A_star(struct cell src, struct cell dst)
+    for (int i; i < open_size; i++)
+    {
+        if (open[i].x == dst.x & open[i].y == dst.y)
+        {
+            index = i;
+        }
+    }
+
+    return index;
+}
+
+void search(struct cell *open, struct cell dst)
+{}
+    // Calculate f values of neighbors of a cell and removes the cell from the open list
+
+void A_star(struct cell src, struct cell dst)
 {
-    struct cell open[54] = {};
-    int open_iterator = 0;
-    int closed[9][10];
+    struct cell open[90] = {};
+    int open_size = 0;
     struct cell map[9][10] = {};
+    int directions[8][2] = {
+        {-1, -1}, {0, -1}, {1, -1},
+        {-1, 0},           {1, 0},
+        {-1, 1},  {0, 1},  {1, 1},    
+    };
+
+    map[src.y][src.x] = src;
+    
+    // Loop through all neighbors
+    for (int i = 0; i < 8; i++)
+    {
+        int x, y;
+        struct cell cell = {src.x+directions[i][0], src.y+directions[i][1], &src, src.g+1, 0};
+        cell.f = f(cell, dst);
+        map[cell.y][cell.x] = cell;
+        open[open_size] = cell;
+        open_size++;
+    }
+
+    // Until the dst cell is in the open list and while there are still cells to explore in the open list
+    while (check_dst(open, open_size, dst) < 0 & 0 < open_size)
+    {
+        
+    }
+
+    int index = check_dst(open, open_size, dst);
+
+    if (index < 0)
+    {
+        printf("%s", "Could not find the path to destination\n");
+    } else {
+        trace_path(open[index]);
+    }
+
 };
 
 #endif
